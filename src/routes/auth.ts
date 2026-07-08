@@ -16,19 +16,17 @@ const signToken = (op: { _id: unknown; name: string; role: string; phone: string
     expiresIn: env.JWT_EXPIRES_IN,
   } as jwt.SignOptions);
 
-// POST /api/auth/setup — first-time superadmin creation
+// POST /api/auth/setup — operator signup
 router.post(
   '/setup',
   [body('name').notEmpty(), body('phone').isLength({ min: 10, max: 10 }), body('pin').isLength({ min: 4, max: 4 })],
   validate,
   asyncHandler(async (req, res) => {
-    const count = await Operator.countDocuments();
-    if (count > 0) return sendError(res, 'Setup already done', 400);
     const { name, phone, pin } = req.body;
     const hashed = await bcrypt.hash(pin, 10);
-    const op = await Operator.create({ name, phone, pin: hashed, role: 'superadmin' });
+    const op = await Operator.create({ name, phone, pin: hashed, role: 'operator' });
     const token = signToken(op);
-    return sendSuccess(res, { token, operator: { id: op._id, name: op.name, role: op.role } }, 'Superadmin created', 201);
+    return sendSuccess(res, { token, operator: { id: op._id, name: op.name, role: op.role } }, 'Operator created', 201);
   })
 );
 
